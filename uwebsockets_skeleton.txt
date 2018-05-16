@@ -1,0 +1,24 @@
+HttpRequest:
+getHeader
+getUrl
+getMethod
+
+enum HttpMethod {
+    METHOD_GET,
+    METHOD_POST,
+    METHOD_PUT,
+    METHOD_DELETE,
+    METHOD_PATCH,
+    METHOD_OPTIONS,
+    METHOD_HEAD,
+    METHOD_TRACE,
+    METHOD_CONNECT,
+    METHOD_INVALID
+};
+
+HttpSocket
+terminate
+upgrade
+
+
+HttpResponse

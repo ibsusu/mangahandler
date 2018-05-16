@@ -1,0 +1,58 @@
+server {
+    client_max_body_size 100m;
+    listen 80;
+
+    server_name localhost *.dummydomain.com.*;
+
+    location / { 
+        root /var/www;
+        index page.html;
+    }
+
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   html;
+    }
+
+    location /data {
+        proxy_pass http://localhost:8081;
+    }
+    location /upload {
+    	# Pass altered request body to this location
+	upload_pass @test;
+
+	# Store files to this directory
+	# the directory is hashed, subdirectories 0 1 2 3 4 5 6 7 8 9 should exist
+	upload_store /roboscans/tmp 1;
+
+	# Allow uploaded files to be read only by user
+	upload_store_access user:rw group:rw all:rw;
+	
+	# Set specified fields in request body
+	upload_set_form_field $upload_field_name.name "$upload_file_name";
+	upload_set_form_field $upload_field_name.content_type "$upload_content_type";
+	upload_set_form_field $upload_field_name.path "$upload_tmp_path";
+
+	# Inform backend about hash and size of a file
+	upload_aggregate_form_field "$upload_field_name.sha1" "$upload_file_sha1";
+	upload_aggregate_form_field "$upload_field_name.size" "$upload_file_size";
+
+	upload_pass_form_field "^submit$|^description$";
+	upload_cleanup 400 404 499 500-505;
+    }
+    location @test {
+	    proxy_pass http://localhost:8081;
+    }
+    location /manga {
+        proxy_pass http://localhost:8081;
+    }
+    location /listings {
+        proxy_pass http://localhost:8081;
+    }
+    location ~ ^/images/(.*\.(jpg|JPG|jpeg|JPEG|png|PNG))$ {
+        alias /roboscans/manga/$1;
+        sendfile    on;
+        sendfile_max_chunk  1m;
+        tcp_nopush  on;
+    }
+}

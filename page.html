@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title>Robot Scanlations</title>
+        <meta name="The Automatic Scanlation Experiment" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    </head>
+    <style>
+        body{
+            background-color: #ffffff;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='12' viewBox='0 0 20 12'%3E%3Cg fill-rule='evenodd'%3E%3Cg id='charlie-brown' fill='%23000000' fill-opacity='0.03'%3E%3Cpath d='M9.8 12L0 2.2V.8l10 10 10-10v1.4L10.2 12h-.4zm-4 0L0 6.2V4.8L7.2 12H5.8zm8.4 0L20 6.2V4.8L12.8 12h1.4zM9.8 0l.2.2.2-.2h-.4zm-4 0L10 4.2 14.2 0h-1.4L10 2.8 7.2 0H5.8z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            font-family: sans-serif;
+        }
+
+        .nav {
+            list-style-type: none;
+            margin: 0;
+            padding-left: 0em;
+            overflow: hidden;
+            background-color: rgb(240, 240, 240);
+        }
+        .nav li {
+            display: inline;
+            padding: 1em .4em 1em .4em;
+            float:left;
+        }
+        #scanlate_link{
+            
+        }
+        #search_link{
+            width:50%;
+            padding: .7em .8em .4em .4em;
+        }
+        #search_link:hover{
+            background-color: rgb(240,240,240);
+            color: black;
+        }
+        #search_box{
+            width:100%;
+            resize:none;
+            padding-top: .4em;
+            height: 1.5em;
+        }
+        #notification_block{
+            background-color: lightblue;
+        }
+        #title{
+            width:100%;
+            resize:none;
+            padding-top: .15em;
+            font-size: large;
+            font-weight: bold;
+            height: 1.5em;
+        }
+        .nav li:hover{
+            background-color: rgb(89, 116, 91);
+            color: rgb(255,255,255);
+        }
+        li.user_name{
+            float:right;
+            padding-right:.4em;
+        }
+        span.languages:hover{
+            text-decoration: underline;
+        }
+        #listing_block{
+
+        }
+        span.title:hover{
+            color:#229a95; 
+        }
+        #manga_div{
+            width:100%;
+            margin-left:auto;
+            margin-right:auto;
+        }
+        .listing{
+            width: 90%;
+            margin-left:auto;
+            margin-right:auto;
+            background-color:rgb(240,240,240);
+        }
+        .block{
+            width: 100%;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        #main_holder{
+            width:100%;
+            margin-top:25px;
+        }
+        .manga_image{
+
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+            max-height: 1500px;
+        }
+        
+    </style>
+    <script>
+        var listings = [];
+        var activeManga = {};
+        var manga_images = {};
+        var websockets = [];
+        function initElements(){
+            console.log("---initElements---");
+            initUploads();
+            getListings();
+        };
+        function initUploads(){
+            var scanlate_link = document.getElementById("scanlate_link");
+            var form = document.getElementById("upload_form");
+            form.style.display = 'none';
+            scanlate_link.onclick = function(){toggleVisibility(form);};
+            form.addEventListener('submit', function(event){
+                console.log("uploading");
+                event.preventDefault();
+                var formData = new FormData();
+                formData.append("myFile", document.getElementById("myFileField").files[0]);
+
+                var XHR = new XMLHttpRequest();
+                XHR.onprogress = function(e){
+                    if (e.lengthComputable) {
+                        var prog = document.getElementById("progress_node");
+                        prog.innerHTML = ""+ e.loaded+  " / " + e.total;
+                    }
+                };
+                XHR.onloadstart = function(e){
+                   var prog = document.getElementById("progress_node");
+                   prog.innerHTML = "UPLOADING";
+                }
+                XHR.onloadend = function(e){
+                    toggleVisibility(document.getElementById("upload_form"));
+                    showUploadDone();
+                }
+                XHR.open("POST", "/upload", true);
+                XHR.send(formData);
+            });
+        }
+        function showUploadDone(){
+            var note = document.getElementById("notification_block");
+            note.style.display = 'block';
+            note.innerHTML = "Done uploading, It will take some time to scanlate. Refresh the page in a minute or two to see the updated list.  If you check too soon not all of the images may be available.  Also, this is an alpha, things may not work.";
+            setTimeout(function(){note.style.display = 'none'}, 10000);
+        }
+        function updateProgress(evt){
+            var prog = document.getElementById("progress_node");
+            prog.innerHTML = (evt.loaded/evt.total) * 100;
+        }
+        function toggleVisibility(node){
+            if (node.style.display == 'none'){node.style.display = 'block';}
+            else {node.style.display = 'none';}
+        }
+        function clearNode(inode){
+            while(inode.firstChild){
+                inode.removeChild(inode.firstChild);
+            }
+        }
+        function listingCompare(a,b){
+            return parseInt(b["date"]) - parseInt(a["date"]);
+        }
+        function reloadListings(){
+            console.log("---reloadListings---");
+            var blocks = document.getElementsByClassName("block");
+            var listing_block = document.getElementById("listing_block");
+            clearNode(listing_block);
+            listings.sort(listingCompare);
+            for (var i=0;i<listings.length;i++){
+                var t = listings[i]["title"];
+                var id = listings[i]["id"];
+                var l="";
+                var lnum = i;
+                for (var k=0;k<listings[i]["languages"].length;k++){
+                    var lang = listings[i]["languages"][k];
+                    l += `<span class="languages" onclick="getManga('/manga/${id}/${lang}', this.parentNode.parentNode)">${lang}</span> | `
+                };
+                var d = new Date(listings[i]["date"]);
+                var s = d.toDateString();
+                var listing_html = `<div class='listing'>`+ (i+1) +`. <span onclick="getManga('/manga/${id}/en', this.parentNode)" class='title'>${t}</span> | <span >${l}</span><span class='date'>${s}</span></div>`;
+                listing_block.insertAdjacentHTML('beforeend', listing_html);
+            }
+            listing_block.style.display = "block";
+        }
+
+        function getManga(path, activeListing){
+            console.log("---getManga---");
+            console.log("active listing: ", activeListing);
+            var split_path = path.split("/");
+            var event = {"listing": activeListing, "reason": "manga", "language": split_path[split_path.length-1], "url": path};
+            callHome(event);
+        }
+        function closeManga(){
+            try{
+                document.getElementById('manga_div').remove();
+            }
+            catch(e){}
+        }
+        function loadManga(activeListing, language){
+            console.log("---loadManga---");
+
+            console.log(activeListing);
+            console.log(language);
+            console.log(activeManga);
+            var manga_html = `<div id='manga_div'></div>`;
+            closeManga();
+            manga_images = {};
+            manga_images = activeManga["images"];
+            manga_images.sort();
+            activeListing.insertAdjacentHTML('afterend', manga_html);
+            var manga_block = document.getElementById("manga_div");
+            manga_block.style.display = "block";
+            for(var i=0;i<manga_images.length;i++){
+                manga_images[i] = "<image onclick='closeManga()' class='manga_image' src='images/"+activeManga["id"]+"/"+language+"/"+manga_images[i]+"'>";
+                manga_block.insertAdjacentHTML('beforeend', manga_images[i]);
+            }
+        }
+        /*function BringToFront(event){
+            make_websocket(event);
+        }
+        function make_websocket(event){
+            ws = new WebSocket("ws://localhost:7890");
+            ws.onmessage = function(eve){
+                console.log(eve.data);
+            }
+            ws.send(JSON.stringify([1,2,3]));
+        }*/
+        function getListings(){
+            console.log("---getListings---");
+            // big 'ol list of manga that have been scanlated
+            var event = {"reason":"getlistings"};
+            callHome(event);
+        }
+        
+        function callHome(event){
+            console.log("calling home for reason: ", event["reason"]);
+            var r = new XMLHttpRequest();
+            if (event["reason"] == "getlistings"){
+                console.log("correct reason");
+                r.open("GET", "/listings", true);
+                r.onreadystatechange = function(){
+                    if (r.readyState == XMLHttpRequest.DONE && r.status != 200){
+                        console.log("Listing Call failed.");
+                        return null;
+                    }
+                    if (r.readyState == XMLHttpRequest.DONE && r.status == 200){
+                        listings = JSON.parse(r.responseText)["listings"];
+                        console.log(listings);
+                        reloadListings();
+                    }
+                };
+                r.setRequestHeader("Content-Type", "application/json");
+                r.send();
+            }
+            if (event["reason"] == "manga"){
+                r.open("POST", event["url"], true);
+                r.onreadystatechange = function(){
+                    if(r.readyState == XMLHttpRequest.DONE && r.status != 200){
+                        console.log("Manga Call failed.");
+                        return null;
+                    }
+                    if(r.readyState == XMLHttpRequest.DONE && r.status == 200){
+                        activeManga = JSON.parse(r.responseText);
+                        loadManga(event["listing"], event["language"]);
+                    }
+                };
+                r.setRequestHeader("Content-Type", "application/json");
+                r.send();
+            }
+            if (event["reason"] == "test"){
+                var stringy = JSON.stringify({requested_image:'047.jpg', dummy_field:'test_test'});
+                console.log(stringy);
+                r.onreadystatechange = function(){
+                    if (r.readyState != 4 || r.status != 200){
+                        console.log("callhome failed.")
+                        return;
+                    } 
+
+                    var image = document.createElement("IMG");
+                    var responseData = JSON.parse(r.responseText);
+                    console.log("responseData");
+                    //console.log(responseData);
+                    for(var i of responseData['im']){
+                        console.log(i);
+                    }
+                    image.src = '/raws/'+responseData['im'][1];
+                    var iblock = document.getElementById('image_block');
+                    iblock.appendChild(image);
+                };
+                r.setRequestHeader("Content-Type", "application/json");
+                r.send(stringy);
+            }
+        }
+    </script>
+    <body onload="initElements();"> 
+        <ul class="nav">
+            <li class="home_link nav_link"><a>Home</a></li>
+            <li id="scanlate_link" class="nav_link"><a>Scanlate</a></li>
+            <li class="browse_link nav_link"><a>Browse</a></li>
+            <li id="search_link" class="nav_link"><div id="title">Automated Scanlations Experiment v0.2 (Alpha)</div><!--textarea id="search_box" name="search_box" placeholder="Search"></textarea--></li>
+            <li class="user_name"><a>Sign In</a></li>
+        </ul>
+
+        <div id="main_holder">
+            <div id="browse_block" class="block">
+                <form id="upload_form" name="upload2" enctype="multipart/form-data">
+                    <label for="upload_input">Manga Chapter Archive:</label>
+                    <input type="file" id="myFileField" name="myFile"/>
+                    <button id="submit_button">Scanlate</button>
+                    <span id="progress_node"></span>
+                </form>
+                <div id="notification_block"></div>
+                <div id="listing_block"></div>
+            </div>
+        </div>
+    </body>
+</html>

@@ -1,0 +1,1 @@
+g++ -std=c++17 -o mangahandler main.cpp -I/usr/local/include -L/usr/local/lib -luuid -lrestclient-cpp -lpthread -lcurl `icu-config --ldflags` -licuio -lstdc++fs `pkg-config --libs opencv`

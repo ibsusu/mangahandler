@@ -1,0 +1,3 @@
+g++ test.cpp -o test -luuid -lstdc++fs `pkg-config --libs opencv` `icu-config --ldflags` -licuio
+
+

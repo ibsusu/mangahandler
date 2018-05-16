@@ -1,0 +1,13 @@
+// IDL file for requesting resources.
+
+namespace diogenes.general;
+
+table CB {
+	cid:uint64;
+	rid:uint64;
+	did:uint64;
+	t1:string;
+	t2:string;
+}
+
+root_type CB;

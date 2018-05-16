@@ -1,0 +1,2 @@
+./mangahandler -i manga/ -f "[あららぎあゆね] リンナ警部は呼吸 ができない 第03巻.rar" -u -m "/home/fuscus/work/diogenes/mangahandler/manga/"
+

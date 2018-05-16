@@ -1,0 +1,4 @@
+#!/bin/bash
+
+g++ -std=c++17 -o server main.cpp Exception.cpp Field.cpp Parser.cpp -L/usr/local/lib -L/usr/local/lib/ssl -lstdc++fs -luWS -lcrypto -lssl -lpthread -lz -luuid  `icu-config --ldflags` -licuio
+	

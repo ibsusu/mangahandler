@@ -1,0 +1,14 @@
+client goes to root, nginx sends back html
+client calls server at listing endpoint
+listing endpoint gets directory listing - main info.json file
+    saves mapping of uuids to titles
+    saves the version of mangahandler process
+    saves the number of images
+    saves last modified time
+    only checks directories that have an info.json file modified after last check time
+    sends back uuids, titles and available languages
+client calls nginx at manga endpoint with uuid and language:
+server sends back json listing of images
+client loads them into image block
+user reads everything.
+

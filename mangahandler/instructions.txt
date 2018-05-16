@@ -1,0 +1,13 @@
+command:
+
+./mangahandler -i manga/ -f "test2.zip" -m /absolute/path/to/directory/mangahandler/manga/ --token 'AIzaiyAlbswqf2UzzlkEKRDjLJ4hBhyNjCToqEg' -s -u
+
+# I don't know if this command works anymore## ./mangahandler -d manga/91e711a2-e3dc-4353-8693-16d6c9454b69/ -s
+# I don't know if this command works anymore## ./mangahandler -d manga/29a5121a-80ab-40bd-98ce-aa1ea18900e5/ -s --token 'lololofsfdjflbUgjkfdfqffffffffffflolosfsjfd' -t
+installation stuff:
+requires
+opencv library
+requires restclient-cpp
+requires uuid stuff
+requires tesseract (not yet)
+requires icu for unicode things

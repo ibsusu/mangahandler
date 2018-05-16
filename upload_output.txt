@@ -1,0 +1,19 @@
+Got text field: [file1.content_type], value: [image/png]
+Got text field: [file1.name], value: [dohoho_logo.png]
+Got text field: [file1.path], value: [/tmp/1/0000000011]
+Got text field: [file1.sha1], value: [7a9c3fe9f0262837cffe51bce55b952a4922662c]
+Got text field: [file1.size], value: [18475]
+Got text field: [file2.content_type], value: [image/jpeg]
+Got text field: [file2.name], value: [20171107_054113_copy.jpg]
+Got text field: [file2.path], value: [/tmp/2/0000000012]
+Got text field: [file2.sha1], value: [14966c972bb4db35f94a949b67ce621800f2d0b6]
+Got text field: [file2.size], value: [3590916]
+Got text field: [file3.content_type], value: [application/vnd.debian.binary-package]
+Got text field: [file3.name], value: [code_1.19.2-1515599945_amd64.deb]
+Got text field: [file3.path], value: [/tmp/3/0000000013]
+Got text field: [file3.sha1], value: [cad35864f66832cb31adf95be8a2da9cfda1dabd]
+Got text field: [file3.size], value: [45394484]
+Got text field: [submit], value: [Upload]
+got something
+
+url is /upload

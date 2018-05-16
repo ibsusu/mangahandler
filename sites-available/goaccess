@@ -1,0 +1,11 @@
+server {
+        server_name somethingsomething.dummydomain.com
+        access_log
+        root /var/www/goaccess/;
+        index rp.html;
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+}
+

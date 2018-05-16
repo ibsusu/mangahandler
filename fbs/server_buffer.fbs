@@ -1,0 +1,14 @@
+// IDL file for sending directory information
+
+namespace diogenes.general;
+
+table SB {
+	cid:uint64;
+	rid:uint64;
+	t1:string;
+	t2:string;
+	obm:[string];
+	yn:bool;
+}
+
+root_type SB;
